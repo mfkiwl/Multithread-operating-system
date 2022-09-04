@@ -62,6 +62,7 @@ int PCB::thread_exit()
     {
         running->setFinished(true);
         running->setStatus(FINISHED);
+        PCB::numberOfFinishedThreads++;
         return 0;
     }
     return -1;
@@ -78,21 +79,18 @@ void PCB::dispatch()
 
 void PCB::threadWrapper()
 {
-    if(running->getID() == 2)
+    if(running->getID() >= 2)
     {
         uint64 a0 = 3;
         __asm__ volatile ("mv a0, %[a0]" : : [a0] "r"(a0));
         __asm__ volatile ("ecall");
     }
     running->body(running->arg);
-    running->setFinished(true);
-    running->setStatus(FINISHED);
-    PCB::numberOfFinishedThreads++;
-    if(running->getID() == 2)
+    if(running->getID() >= 2)
     {
         uint64 a0 = 4;
         __asm__ volatile ("mv a0, %[a0]" : : [a0] "r"(a0));
         __asm__ volatile ("ecall");
     }
-    dispatch();
+    thread_exit();
 }
